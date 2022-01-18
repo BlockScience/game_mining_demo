@@ -7,8 +7,8 @@ from random import random
 TIMESTEPS = 1000
 SAMPLES = 1
 
-PLAYER_1_PAYOFF = [[5, 0], [1, -4]]
-PLAYER_2_PAYOFF = [[5, 0], [1, -4]]
+PLAYER_1_PAYOFF = [[1, 0], [0, -1]]
+PLAYER_2_PAYOFF = [[1, 0], [0, -1]]
 PAYOFF_TENSOR = [PLAYER_1_PAYOFF, PLAYER_2_PAYOFF]
 
 
@@ -42,10 +42,18 @@ class Player():
 
 # %%
 
-PARAMS: dict = {}
+
+INITIAL_PLAYERS = [
+    Player(actions_belief={}, player_no=0),
+    Player(actions_belief={}, player_no=1)
+]
+
+PARAMS: dict = {
+    'nothing': [0]
+}
 
 INITIAL_STATE: dict = {
-    'players': None,
+    'players': INITIAL_PLAYERS,
     'actions': {},
     'payoffs': {},
     'payoff_tensor': PAYOFF_TENSOR
@@ -68,19 +76,18 @@ def s_actions(params, _2, _3, state, _5):
         # payoff_avg_estimator = (payoff_1_estimator + payoff_2_estimator) / 2
         payoff_min = min(payoff_1_estimator, payoff_2_estimator)
         payoff_max = max(payoff_1_estimator, payoff_2_estimator)
-        utility_1 = (payoff_1_estimator - payoff_min) / payoff_max
-        utility_2 = (payoff_2_estimator - payoff_min) / payoff_max
-        total_utility = sum(utility_1, utility_2)
+        utility_1 = (payoff_1_estimator - payoff_min)# / payoff_max
+        utility_2 = (payoff_2_estimator - payoff_min)# / payoff_max
+        total_utility = sum([utility_1, utility_2])
 
         probability_1 = utility_1 / total_utility
         choice = (random() > probability_1)
         choices[i] = choice
 
+    return ('actions', choices)
 
-    return {'actions': choices}
 
-
-BLOCKS = [
+BLOCKS: list[dict] = [
     {
         'name': 'Play the game',
         'policies': {
@@ -92,6 +99,7 @@ BLOCKS = [
     },
     {
         'name': 'Compute payoffs',
+        'ignore': True,
         'policies': {
 
         },
@@ -101,6 +109,7 @@ BLOCKS = [
     },
     {
         'name': 'Update beliefs',
+        'ignore': True,
         'policies': {
         },
         'variables': {
@@ -110,6 +119,7 @@ BLOCKS = [
     },
     {
         'name': 'Mutate payoff tensor',
+        'ignore': True,
         'policies': {
 
         },
@@ -119,3 +129,7 @@ BLOCKS = [
         }
     }
 ]
+
+BLOCKS = [block
+          for block in BLOCKS
+          if block.get('ignore', False) == False]
