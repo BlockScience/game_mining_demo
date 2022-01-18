@@ -7,8 +7,8 @@ from random import random
 TIMESTEPS = 1000
 SAMPLES = 1
 
-PLAYER_1_PAYOFF = [[1, 0], [0, -1]]
-PLAYER_2_PAYOFF = [[1, 0], [0, -1]]
+PLAYER_1_PAYOFF = [[1, 0.5], [0.5, 0.1]]
+PLAYER_2_PAYOFF = [[1, 0.5], [0.5, 0.1]]
 PAYOFF_TENSOR = [PLAYER_1_PAYOFF, PLAYER_2_PAYOFF]
 
 
@@ -74,10 +74,10 @@ def s_actions(params, _2, _3, state, _5):
         payoff_1_estimator = p_a1 * payoff[0][0] + p_a2 * payoff[0][1]
         payoff_2_estimator = p_a1 * payoff[1][0] + p_a2 * payoff[1][1]
         # payoff_avg_estimator = (payoff_1_estimator + payoff_2_estimator) / 2
-        payoff_min = min(payoff_1_estimator, payoff_2_estimator)
-        payoff_max = max(payoff_1_estimator, payoff_2_estimator)
-        utility_1 = (payoff_1_estimator - payoff_min)# / payoff_max
-        utility_2 = (payoff_2_estimator - payoff_min)# / payoff_max
+        # payoff_min = min(payoff_1_estimator, payoff_2_estimator)
+        # payoff_max = max(payoff_1_estimator, payoff_2_estimator)
+        utility_1 = payoff_1_estimator
+        utility_2 = payoff_2_estimator
         total_utility = sum([utility_1, utility_2])
 
         probability_1 = utility_1 / total_utility
@@ -85,6 +85,36 @@ def s_actions(params, _2, _3, state, _5):
         choices[i] = choice
 
     return ('actions', choices)
+
+
+def s_payoffs(params, _2, _3, state, _5):
+
+    actions: dict[int, bool] = state['actions']
+    payoff_tensor: list[list[list[int]]] = state['payoff_tensor']
+    players: list[Player] = state['players']
+
+    payoffs = {i: payoff_tensor[i][actions[0]][actions[1]]
+               for i, player in enumerate(players)}
+
+    return ('payoffs', payoffs)
+
+
+def s_players(params, _2, _3, state, _5):
+    return ('players', state['players'])
+
+
+
+def s_payoff_tensor(params, _2, _3, state, _5):
+
+    T = np.array(state['payoff_tensor'])
+    if state['timestep'] > 100:
+        
+        sigma = np.random.randn(2, 2, 2)
+        new_T = T + sigma
+        return ('payoff_tensor', new_T.tolist())
+    else:
+        return ('payoff_tensor', T.tolist())
+
 
 
 BLOCKS: list[dict] = [
@@ -99,32 +129,32 @@ BLOCKS: list[dict] = [
     },
     {
         'name': 'Compute payoffs',
-        'ignore': True,
+        'ignore': False,
         'policies': {
 
         },
         'variables': {
-            'payoffs': None
+            'payoffs': s_payoffs
         }
     },
     {
         'name': 'Update beliefs',
-        'ignore': True,
+        'ignore': False,
         'policies': {
         },
         'variables': {
-            'players': None
+            'players': s_players
 
         }
     },
     {
         'name': 'Mutate payoff tensor',
-        'ignore': True,
+        'ignore': False,
         'policies': {
 
         },
         'variables': {
-            'payoff_tensor': None
+            'payoff_tensor': s_payoff_tensor
 
         }
     }
