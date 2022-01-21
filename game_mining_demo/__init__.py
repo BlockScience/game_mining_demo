@@ -1,5 +1,5 @@
 from game_mining_demo.model import PARAMS, INITIAL_STATE, TIMESTEPS, SAMPLES
-from game_mining_demo.model import BLOCKS
+from game_mining_demo.structure import BLOCKS
 
 default_run_args = (INITIAL_STATE,
                     PARAMS,
