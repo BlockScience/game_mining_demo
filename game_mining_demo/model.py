@@ -7,8 +7,9 @@ SAMPLES = 5
 
 PLAYER_1_PAYOFF = [[1, 0.5], [0.5, 0.1]]
 PLAYER_2_PAYOFF = [[1, 0.5], [0.5, 0.1]]
-PAYOFF_TENSOR = [PLAYER_1_PAYOFF, PLAYER_2_PAYOFF]
 
+PAYOFF_TENSOR = [PLAYER_1_PAYOFF, PLAYER_2_PAYOFF]
+# dim: [player_no, player_1_action, player_2_action]
 
 
 # %%

@@ -3,6 +3,7 @@ import numpy as np
 
 def p_actions(params, _2, _3, state):
 
+    # Dependences
     past_actions = state['past_actions']
     players: list[Player] = state['players']
     payoff_tensor: list[list[list[int]]] = state['payoff_tensor']
@@ -26,13 +27,13 @@ def p_actions(params, _2, _3, state):
 
         # Compute expected payoffs
         if player.player_no == 0:
-            pi_1 = R[0][0] * P[0] + R[0][1] * P[1]
-            pi_2 = R[1][0] * P[0] + R[1][1] * P[1]
-        elif player.player_no == 1:
             pi_1 = R[0][0] * P[0] + R[1][0] * P[1]
             pi_2 = R[0][1] * P[0] + R[1][1] * P[1]
+        elif player.player_no == 1:
+            pi_1 = R[0][0] * P[0] + R[0][1] * P[1]
+            pi_2 = R[1][0] * P[0] + R[1][1] * P[1]
         else:
-            pass
+            raise ValueError("Player number must be 0 or 1")
 
         # Iverson Bracket
         if pi_1 > pi_2:
@@ -41,15 +42,15 @@ def p_actions(params, _2, _3, state):
             choice = 0
 
         choices[player.player_no] = choice
-        likelihoods[player.player_no] = p_1
+        likelihoods[player.player_no] = (P[0], P[1])
 
     return {'actions': choices,
             'likelihood': likelihoods}
 
 
-def s_payoffs(params, _2, _3, state, _5):
+def s_payoffs(params, _2, _3, state, signal):
 
-    actions: dict[int, bool] = state['actions']
+    actions: dict[int, bool] = signal['actions']
     payoff_tensor: list[list[list[int]]] = state['payoff_tensor']
     players: list[Player] = state['players']
 
@@ -76,9 +77,9 @@ def s_payoff_tensor(params, _2, _3, state, _5):
         return ('payoff_tensor', T.tolist())
 
 
-def s_past_actions(_1, _2, _3, state, _5):
+def s_past_actions(_1, _2, _3, state, signal):
     h = state['past_actions'].copy()
-    a = state['actions']
+    a = signal['actions']
 
     h[0].append(a[0])
     h[1].append(a[1])
@@ -89,10 +90,11 @@ def s_actions(_1, _2, _3, _4, signal):
     return ('actions', signal['actions'])
 
 
-def s_player_0_likelihood(_1, _2, _3, _4, signal):
-    return ('player_0_likelihood', signal['likelihood'][0])
+def s_players_likelihood(params, _2, _3, state, signal):
+    players = state['players'].copy()
+    likelihoods = signal.get('likelihood', {})
 
+    for player_no, likelihood in likelihoods.items():
+        players[player_no].likelihood_vector = likelihood
 
-def s_player_1_likelihood(_1, _2, _3, _4, signal):
-    return ('player_1_likelihood', signal['likelihood'][1])
-
+    return ('players', players)
