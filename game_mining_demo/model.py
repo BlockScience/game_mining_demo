@@ -2,7 +2,7 @@ from game_mining_demo.types import PlayerParams, Player
 
 from cadCAD_tools.preparation import sweep_cartesian_product
 
-TIMESTEPS = 500
+TIMESTEPS = 2000
 SAMPLES = 5
 
 PLAYER_1_PAYOFF = [[1, 0.5], [0.5, 0.1]]
